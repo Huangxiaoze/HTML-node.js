@@ -1,0 +1,149 @@
+<html>
+   <head>
+    <title>Welcome to Shopping!!</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style type="text/css">
+      body{font:KaiTi;background:url(./images/b.jpg);background-attachment: fixed;background-size: 100% 100%;}
+      #search-button{width:40px;background: url(./images/search.ico) #ccc;background-size: contain;}
+      img{width:200px;height: 200px;}
+      .col:first-child{
+        margin-bottom: 20px;
+      }
+      .good-price{
+        font-family: KaiTi;
+        margin-top:4px;
+      }
+      .good-price a{
+        margin-left: 4px;
+        /*border:;*/
+      }
+      .good-price img{
+        width:18px;
+        height: 18px;
+        margin:0;
+      }
+      .input-group-append a{
+        margin-left: 20px;
+        border:1px solid #ccc;
+        padding: 2px;
+        font-family: KaiTi;
+        text-shadow: 2px;
+      }
+      .input-group-append img{
+        width:20px;
+        height: 20px;
+      }
+    </style>
+    <script type="text/javascript">
+      var getCookie = (str)=>{
+          start = str.search(/id=()/i)
+          return str.substring(start+3)
+      }
+      var CID=null
+      $(document).ready(function(){
+        CID = getCookie(document.cookie)
+        $.get('/getUser',{id:CID,table:'customers',idname:'cid'},(data, res)=>{
+          $('#cname').text(data.res[0].cname)
+        })
+        $.get('/show_products',function(data, res){
+          products = data.res
+          row = parseInt(products.length)/3 + ((products.length%3)!=0)
+          for(let i=0;i<row;i++){
+            row_content = "<div class=\"row\" id='"+i+"'></div>"
+            $("#product").append(row_content) 
+            for(let j=0;j<3;j++){
+              col_content = "<div class=\"col\" id='"+products[3*i+j].pid+"'>"+
+                            "<div style=\"\">"+
+                            "<img src=\"./images/"+products[3*i+j].pname.toLowerCase()+".jpg\" class=\"img-thumbnail img-fluid\" style=\"width: 200px;height: 200px;\"/>"+
+                            "</div>"+
+                            "<div class=\"good-price\">"+
+                            "<span> 价格:<strong style=\"color:red;\">￥"+products[3*i+j].original_price+"</strong></span>"+
+                            "<a href=\"#\"><img src=\"./images/car.ico\">加入购物车</a>"+
+                            "</div>"
+              $("#"+i).append(col_content) 
+              $('#'+products[3*i+j].pid).find('a').on({
+                click:()=>{
+                  pid = products[3*i+j].pid
+                  ptime = new Date()
+                  eid = 'e00'
+                  $.post('/add_to_car',{cid:CID, eid:eid, ptime:ptime,pid:pid},function(data, status){
+                    if(!data.err){
+                      alert("添加成功！")
+                    }else{
+                      console.log("err")
+                      alert(data.tip)
+                    }
+                  })
+                }
+              })
+            }  
+            
+          }
+        })
+        $('.col').on({
+          mouseenter:()=>{
+            $(this).css('border', '2px solid red')
+          }
+        })
+        $('#search-button').on({
+          click:function(){
+            pname = $('#search-lineEdit').val()
+            console.log(pname)
+            // $.get("/search",{pname:pname},function(data, res){
+            //   console.log(data, res)
+            // })
+          },     
+          mouseleave:()=>{
+            $('#search-button').css('background-color', "#ccc")
+          },
+          mouseenter:()=>{
+            $('#search-button').css('background-color', "#EEC0C0")
+          },
+        })
+        $('#navToMyCar').on('click',function(){
+          $('#navToMyCar').attr('href','car.html')
+          document.cookie = 'id='+CID+';path=car.html'
+        })
+        $('#histrocalPur').on('click',function(){
+          $('#histrocalPur').attr('href','hisBuy.html')
+          document.cookie = 'id='+CID+';path=hisBuy.html'
+        })
+      })
+    </script>
+  </head>
+   <body>
+    <div class="container mt-3">
+      <div id='user' class="row" style="text-align: center;font-family: KaiTi;margin:4px;color:white;text-shadow: 0 0 10px;">
+        <span >欢迎您，<strong id='cname'></strong></span>
+      </div>
+      <form>
+        <div class="input-group mb-3">
+          <!-- <img src="./images/cat.jpg"> -->
+          <input type="text" class="form-control" placeholder="请输入搜索的商品" id="search-lineEdit">
+          <div class="input-group-append">
+            <span class="input-group-text" id="search-button"></span>
+            <a id="navToMyCar" href="javascript:;" style="color:orange;text-shadow: 0 0 10px;">我的购物车<img src="./images/car.ico"></a>
+            <a id="histrocalPur", href="javascript:;" style="color:orange;text-shadow: 0 0 10px;">历史购买<img src="./images/buy.ico"></a>
+          </div>
+        </div>
+      </form>
+      <div class="jumbotron">
+        <div id="product" style="margin:0 auto;width: auto;width: 100%;text-align: center;"></div>      
+        <div class="row">
+          <ul class="pagination " style="margin:0 auto;">
+            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item active"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+   </body>
+</html>

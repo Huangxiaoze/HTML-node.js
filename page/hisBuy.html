@@ -1,0 +1,71 @@
+<html>
+   <head>
+    <title>历史购买!!</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        body{font:KaiTi;background:url(./images/b.jpg);background-attachment: fixed;background-size: 100% 100%;}
+    </style>
+    <script type="text/javascript">
+    	var getContent = (total_price,ptime,pid,pname,qty,original_price,discount,margin_bottom)=>{
+    		var content = "<div class=\"jumbotron jumbotron-fluid\" style=\"margin-bottom:"+margin_bottom+"px;\">"+
+		 			"<div class=\"row\" style=\"margin-left: 10px;padding:0px;\">"+
+		 				"<img src=\"./images/"+pname.toLowerCase()+".jpg\"/ class=\"img-thumbnail img-fluid\" style=\"width: 180px;height: 180px;margin-left:20px;\">"+
+		 				"<div style=\"margin-left:20px;\">"+
+ 	 						"<div><strong>商品名称：</strong>"+pname+"</div>"	+ 
+ 	 						"<div><strong>商品原价：</strong>"+original_price+"</div>"+
+ 	 						"<div><strong>商品折扣：</strong>"+discount+"</div>"+
+		 					"<div><strong>商品简介：</strong>****************************************************************<br>"+
+	 	 					"</div>"+
+	 	 					"<div><strong>购买时间：</strong>"+ptime+"</div>"+
+	 	 					"<div><strong>购买数量：</strong>"+qty+"</div>"+
+	 	 					"<div class=\"d-flex flex-row\">"+
+		 	 					"<div class=\"\"><strong id=\"total_"+pid+"\" style=\"color:red;\">合计：</strong>￥"+total_price+"</div>"+
+		 					"</div>"+
+		 				"</div>"+
+		 			"</div>"+
+		 		"</div>"
+		 return content;
+    	}
+        var getCookie = (str)=>{
+          start = str.search(/id=()/i)
+          return str.substring(start+3)
+        }
+        var CID = null
+    	$(document).ready(function(){
+            CID = getCookie(document.cookie)
+    		$.get('/getHisBuy',{cid:CID},function(data, status){
+    			products = data.res
+    			console.log(products)
+    			for(let i=0;i!=products.length;i++){
+    				(function(i){
+	    				var pid = products[i].pid
+	    				var pname = products[i].pname
+	    				var qty = products[i].qty
+	    				var original_price = products[i].original_price
+	    				var discnt_rate = products[i].discnt_rate
+	    				var ptime = products[i].ptime 
+	    				var total_price = products[i].total_price
+    					margin_bottom = 10
+    					if (i==products.length-1){
+    						margin_bottom = 100
+    					}
+	    				let content = getContent(total_price,ptime,pid,pname,qty, original_price,discnt_rate,margin_bottom)
+	    				$('#mycar').append(content) 
+    				})(i)
+    			}
+
+    		})	
+    	})
+    </script>
+ 	</head>
+ 	<body>
+ 		<div class="container mt-3 " style="height: 1000px;">
+ 			<div  id="mycar" class="d-flex flex-column"></div>
+ 		</div>
+ 	</body>
+</html>

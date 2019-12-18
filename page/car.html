@@ -1,0 +1,222 @@
+<html>
+   <head>
+    <title>快来清空您的购物车吧!!</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        body{font:KaiTi;background:url(./images/b.jpg);background-attachment: fixed;background-size: 100% 100%;}
+    </style>
+    <script type="text/javascript">
+    	var refreshTotal = (inputsID,pur_product)=>{
+    		total = 0.0
+			for(let i=0; i<inputsID.length;i++){
+				var purid = inputsID[i]
+				var pid = pur_product[purid].pid 
+				var Checked = $('#'+purid).find('input').prop('checked')
+				var qty = Number($('#amount_'+pid).text())
+				if(Checked&&qty!=0){
+					total+= Number($('#total_'+pid).text().replace('￥',''))
+				}
+			} 	
+			$('#sum').text('￥'+total.toFixed(2))	
+    	}
+    	var bindEvent = (purid, pid, product_mes,inputsID,pur_product)=>{
+    		$('#'+purid).find('input').on('click',function(){
+    			refreshTotal(inputsID, pur_product)
+    		})
+			$('#reduce_'+pid).on({
+    			mouseenter:()=>{
+    				$('#reduce_'+pid).css('border','1px solid red')
+    			},
+    			mouseleave:()=>{
+    				$('#reduce_'+pid).css('border','1px solid #ccc')
+    			},
+    			click:()=>{
+    				x = Number($('#amount_'+pid).text())
+    				if(x-1>=0){
+	     				$('#amount_'+pid).text(x-1) 
+	     				$('#total_'+pid).text((product_mes[pid]['original_price']*(x-1)*(1-product_mes[pid]['discnt_rate'])).toFixed(2)) 					
+    				}
+    				refreshTotal(inputsID,pur_product)
+
+    			}
+    		})
+     		$('#add_'+pid).on({
+    			mouseenter:()=>{
+    				$('#add_'+pid).css('border','1px solid red')
+    			},
+    			mouseleave:()=>{
+    				$('#add_'+pid).css('border','1px solid #ccc')
+    			},
+    			click:()=>{
+    				x = Number($('#amount_'+pid).text())
+    				if(x+1>product_mes[pid]['qoh']){
+    					alert("奥利奥，货存不足啦...~_~！")
+    					return
+    				}
+    				$('#amount_'+pid).text(x+1)
+    				$('#total_'+pid).text((product_mes[pid]['original_price']*(x+1)*(1-product_mes[pid]['discnt_rate'])).toFixed(2))
+    				refreshTotal(inputsID,pur_product)
+    			}
+    		})  
+    	}
+    	var getContent = (purid,pid,pname,qty,original_price,discount,margin_bottom)=>{
+    		var content = "<div class=\"jumbotron jumbotron-fluid\" style=\"margin-bottom:"+margin_bottom+"px;\">"+
+		 			"<div class=\"row\" style=\"margin-left: 10px;padding:0px;\">"+
+						"<div class=\"form-check\" style=\"margin-right:20px;\">"+
+						  "<label id=\""+purid+"\" class=\"form-check-label\">"+
+						    "<input style=\"width: 20px;height: 20px;border-radius: 100px;\" type=\"checkbox\" class=\"form-check-input\" value=\"\">"+
+						  "</label>"+
+						"</div>"+
+		 				"<img src=\"./images/"+pname.toLowerCase()+".jpg\"/ class=\"img-thumbnail img-fluid\" style=\"width: 150px;height: 150px;\">"+
+		 				"<div style=\"margin-left:20px;\">"+
+ 	 						"<div><strong>商品名称：</strong>"+pname+"</div>"	+ 
+ 	 						"<div><strong>商品原价：</strong>"+original_price+"</div>"+
+ 	 						"<div><strong>商品折扣：</strong>"+discount+"</div>"+					
+		 					"<div><strong>商品简介：</strong>****************************************************************<br>"+
+	 						"****************************************************************************<br>"+
+	 	 					"</div>"+
+	 	 					"<div class=\"d-flex flex-row\">"+
+		 	 					"<div class=\"\">合计：<strong id=\"total_"+pid+"\" style=\"color:red;\">￥"+(qty*original_price).toFixed(2)+"</strong></div>"+
+				 				"<div id=\"reduce_"+pid+"\" contenteditable=\"false\" style=\"border:1px solid black; width: 20px;height: 20px;text-align: center;vertical-align: center;line-height: 20px;margin-left: 300px;background: orange;\"><strong style=\"color:white;\">-</strong></div>"+
+				 				"<div id=\"amount_"+pid+"\" style=\"border-radius: 100px 100px; text-align: center;vertical-align: center;line-height: 20px;margin-left: 8px;margin-right: 8px;width: 20px;height: 20px;\">"+qty+"</div>"+
+				 				"<div id=\"add_"+pid+"\" style=\"border:1px solid black; width: 20px;height: 20px;text-align: center;vertical-align: center;line-height: 20px;background: orange;\"><strong style=\"color:white\">+</strong></div>"+
+		 					"</div>"+
+		 				"</div>"+
+		 			"</div>"+
+		 		"</div>"
+		 return content;
+    	}
+
+    	var submit = (inputsID,pur_product)=>{
+    		    $('#submit').on({
+	    			mouseenter:()=>{
+	    				$('#submit').css('opacity','0.8')
+	    			},
+	    			mouseleave:()=>{
+	    				$('#submit').css('opacity','1')
+	    			},
+	    			click:()=>{
+	    				var postData = new Array()
+                        var hahah = new Array()
+	    				for(let i=0; i<inputsID.length;i++){
+	    					var purid = inputsID[i]
+	    					var pid = pur_product[purid].pid 
+	    					var discnt_rate = pur_product[purid].discnt_rate
+	    					var original_price = pur_product[purid].original_price
+                            var qoh = pur_product[purid].qoh 
+                            var qoh_threshold = pur_product[purid].qoh_threshold
+	    					var Checked = $('#'+purid).find('input').prop('checked')
+	    					var qty = Number($('#amount_'+pid).text())
+                            var pname = pur_product[purid].pname
+	    					if(Checked&&qty!=0){
+	    						sqlParam = {purid:purid,qty:qty,discnt_rate:discnt_rate, original_price:original_price}
+	    						postData.push(sqlParam)
+                                if(qoh-qty<qoh_threshold){
+                                    console.log(pname, qoh, qoh+qty)
+                                    obj = {}
+                                    obj.pname=pname
+                                    obj.old_qoh = qoh 
+                                    obj.new_qoh = 2*qoh 
+                                    obj.increase = qoh+qty 
+                                    hahah.push(obj)
+                                }
+	    					}
+	    				}
+                        tip = '太棒啦！！ *_*'
+                        if(hahah.length!=0){
+                            tip+='\n您的购买令供应商不得不补充库存\n'
+                            for(let i=0;i!=hahah.length;i++){
+                                (function(i){
+                                    var ojb = hahah[i]
+                                    console.log(ojb,'heehhehe')
+                                    tip+='商品：'+ ojb['pname']+' | old_qoh:'+ojb.old_qoh+" | new_qoh:"+ojb.new_qoh+" | old_qoh+qty_sold:"+ojb.increase
+                                    if(i!=hahah.length-1){
+                                        tip+='\n'
+                                }
+
+
+                                })(i)
+
+                            }
+                        }             
+	    				$.post('/buy',{data:JSON.stringify(postData)},function(data, status){
+	    					if(!data.err){
+	    						window.location.reload()
+	    						alert(tip)
+	    					}else{
+	    						window.location.reload()
+	    					}
+	    				})
+    			}   			
+    		})	
+    	}
+        var getCookie = (str)=>{
+          start = str.search(/id=()/i)
+          return str.substring(start+3)
+        }
+        var CID = null
+    	$(document).ready(function(){
+            CID = getCookie(document.cookie)
+            
+            console.log(CID)
+ 			var product_mes = {}
+ 			var pur_product = {}
+ 			var inputsID = new Array()
+    		$.get('/getCar',{cid:CID},function(data, status){
+    			if(data.res.length==0){
+					$('#mycar').append("<div style=\"margin:0 auto;font-size:40px;color:orange;text-shadow:0 0 10px;\">"+
+						"购物车竟然空空如也，快去买买买！！！</div>")
+    				$('.row').hide()
+    				$('body').css('background','#ccc')
+    			}
+    			products = data.res
+    			console.log(products)
+    			for(let i=0;i!=products.length;i++){
+    				(function(i){
+	    				var purid = products[i].pur
+	    				var pid = products[i].pid
+	    				var pname = products[i].pname
+	    				var qty = products[i].qty
+	    				var original_price = products[i].original_price
+	    				var discnt_rate = products[i].discnt_rate
+                        var qoh = products[i].qoh
+                        var qoh_threshold = products[i].qoh_threshold
+	    				inputsID.push(purid)
+	    				pur_product[purid]={pname:pname,qoh:qoh, qoh_threshold:qoh_threshold, pid:pid, discnt_rate:discnt_rate, original_price:original_price}
+	    				product_mes[products[i].pid] = {}
+    					product_mes[products[i].pid].discnt_rate = products[i].discnt_rate
+    					product_mes[products[i].pid].original_price = products[i].original_price
+    					product_mes[products[i].pid].qoh = products[i].qoh
+    					margin_bottom = 10
+    					if (i==products.length-1){
+    						margin_bottom = 100
+    					}
+	    				let content = getContent(purid,pid,pname,qty, original_price,discnt_rate,margin_bottom)
+	    				$('#mycar').append(content) 
+	    				bindEvent(purid,pid,product_mes,inputsID,pur_product)
+    				})(i)
+    			}
+    			console.log(inputsID)
+    			submit(inputsID,pur_product)
+
+
+
+    		})	
+    	})
+    </script>
+ 	</head>
+ 	<body>
+ 		<div class="container mt-3 " style="height: 1000px;">
+ 			<div  id="mycar" class="d-flex flex-column"></div>
+ 		</div>
+		<div class="row" style="position: fixed;bottom: 0px;height: 80px;width: 100%;background: #EDA782;margin:0 auto;padding-left: 200px;padding-right: 200px;padding-bottom: 20px;padding-top: 20px;">
+			<div class="col" style="font-size: 30px;">合计:<strong id="sum" style="color:white;">0</strong></div>
+			<div id="submit" onselectstart="return false;" class="col" style="border-radius:20px; padding:0;margin:0 auto;max-width:60px;height: 40px;border:4px double white;color:black;text-align: center;background:#8C8C8C;">购买</div>
+		</div>
+ 	</body>
+</html>

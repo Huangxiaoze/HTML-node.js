@@ -1,0 +1,177 @@
+<html>
+   <head>
+    <title>你好鸭!!</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        body{font:KaiTi;background:url(./images/b.jpg);background-attachment: fixed;background-size: 100% 100%;}
+        tr:first-child{max-width:50px;}
+        .popover-body ul{
+            color:#4C4C4C;width:200px; margin:0;
+        }
+    </style>
+    <script type="text/javascript">
+
+        var getTable = (pid,pname,original_price, discnt_rate,qoh, qoh_threshold)=>{
+            var input_style = "\"width: 100%;height:inherit;padding:.75rem;border:none;background:transparent;text-align:center;\""
+            var content = "<table id='table_"+pid+"' class=\"table table-bordered\" style=\"text-align: center;background:white;\">"+
+                "<tbody>"+
+                    "<tr>"+
+                        "<td><strong>商品名称</strong></td>"+
+                        "<td style=\"padding:0px;\"><input type=\"text\" name=\"p"+pid+"\" style="+input_style+
+                        "value='"+pname+"'"+
+                        "></td>"+
+                    "</tr>"+
+                    "<tr>"+
+                        "<td><strong>商品原价</strong></td>"+
+                        "<td style=\"padding:0px;\"><input type=\"text\" name=\"1\" style="+input_style+
+                        "value='"+original_price+"'"+"></td>"+
+                    "</tr>"+
+                    "<tr>"+
+                        "<td><strong>商品折扣</strong></td>"+
+                        "<td style=\"padding:0px;\"><input type=\"text\" name=\"1\" style="+input_style+"value='"+discnt_rate+"'"+"></td>"+
+                    "</tr>"+
+                    "<tr>"+
+                        "<td><strong>商品简介</strong></td>"+
+                        "<td style=\"padding:0px;\"><input type=\"text\" name=\"1\" style="+input_style+"value='"+"*********"+"'"+"></td>"+
+                    "</tr>"+
+                    "<tr>"+
+                        "<td><strong>商品货存</strong></td>"+
+                        "<td style=\"padding:0px;\"><input type=\"text\" id=\"qoh"+pid+"\" style="+input_style+"value='"+qoh+"'"+"></td>"+
+                    "</tr>"+
+                    "<tr>"+
+                        "<td><strong>最低货存</strong></td>"+
+                        "<td style=\"padding:0px;\"><input type=\"text\" id=\"r"+pid+"\" style="+input_style+"value='"+qoh_threshold+"'"+"></td>"+
+                    "</tr>"+
+                "</tbody>"+
+            "</table>"
+            return content
+        }
+    	var getContent = (pid,pname,original_price, discnt_rate,qoh, qoh_threshold)=>{
+    		var content = 
+		 			"<div class=\"p-2\" style=\"background:#e9ecef;margin:10px;\">"+
+		 				"<div class='d-flex flex-row' style='margin:0 auto;position:relative;'>"+
+                            "<img src=\"./images/"+pname.toLowerCase()+".jpg\"/ class=\"img-thumbnail img-fluid\" style=\"width: 180px;height: 180px;margin-bottom:10px;\">"+
+                            "<div style='margin-left:10px;'>"+
+                            "<div><button id='sales_"+pid+"' data-html='true' title=\"详情\" data-toggle=\"popover\" data-placement=\"right\" data-content=\"<div  style='color:yellow;'>Content</div>\" type=\"button\" class=\"btn btn-dark\" style='margin-bottom:10px;'>销售情况</button></div>"+
+                            "<div><button id='upload_"+pid+"' type=\"button\" class=\"btn btn-dark\" style='margin-bottom:10px;'>上传图片</button></div>"+
+                            "<div><button id='add_"+pid+"' type=\"button\" class=\"btn btn-dark\" style='margin-bottom:10px;'>快快进货</button></div>"+
+                            "<button id='modify_"+pid+"' type=\"button\" class=\"btn btn-dark\">保存修改</button>"+
+                            '</div>'+
+		 				"</div>"+
+                        "<div style=\"\">"+
+                        getTable(pid,pname,original_price, discnt_rate,qoh, qoh_threshold)+
+		 				"</div>"+
+		 			"</div>"
+		 return content;
+    	}
+        var bindEvent = (pids)=>{
+            for(let i=0;i!=pids.length;i++){
+                (function(i){
+                    $('#add_'+pids[i]).on('click',()=>{
+                        var add_action = Number($('#qoh'+pids[i]).val())<Number($('#r'+pids[i]).val())
+                        if(add_action){
+                        }else{
+                            alert("库存充足，不用进货啦！！！！")
+                        }
+                    })
+                })(i)
+            }
+
+            var months = ['Jan.','Feb.','Mar.','Apr.','May.','Jun.','Jul.','Aug.','Sept.','Oct.','Nov.','Dec.']
+            for(let i=0;i!=pids.length;i++){
+                (function(i){
+                    $('#sales_'+pids[i]).on('click',function(){
+                        $.get('/monthSales',{pid:pids[i],month:12,sid:SID},function(data, status){
+                            console.log(data)
+                            res = data.res[0]
+                            avg_sale_price = res.avg_sale_price||0
+                            month = res.month-1
+                            year = res.year
+                            total_dollar = res.total_dollar||0
+                            total_qty = res.total_qty||0
+                            if(!data.err){
+                                var combobox = "<div class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuLink\">"+
+                                    "<a class=\"dropdown-item\" href=\"#\">Action</a>"+
+                                    "<a class=\"dropdown-item\" href=\"#\">Another action</a>"+
+                                    "<a class=\"dropdown-item\" href=\"#\">Something else here</a>"+
+                                    "</div>"
+                                var content = "<ul>"+
+                                    "<li>销售年份：<span style='color:orange;'>"+year+'</span></li>'+
+                                    "<li>销售月份：<span style='color:orange;'>"+months[month]+'</span></li>'+
+                                    "<li>月销售量：<span style='color:orange;'>"+total_qty+'</span></li>'+
+                                    "<li>月销售额：<span style='color:orange;'>"+total_dollar+'</span></li>'+
+                                    "<li>平均收入：<span style='color:orange;'>"+avg_sale_price+'</span></li>'+
+                                    "</ul>"
+                                $('.popover-body').html(content)
+                            }else{
+                                $('.popover-body').html("<ul></ul>")
+                            }
+                            
+                        })
+                        
+                    })
+                })(i)
+            } 
+        }
+        var getCookie = (str)=>{
+            start = str.search(/id=()/i)
+            return str.substring(start+3)
+        }
+        var SID = null 
+    	$(document).ready(function(){
+            SID = getCookie(document.cookie)
+            $.get('/getUser',{id:SID,table:'suppliers',idname:'sid'},(data, res)=>{
+                $('#sname').text(data.res[0].sname)
+            })
+    		$.get('/getSupply',{sid:SID},function(data, status){
+    			products = data.res
+                col = 3
+                row = parseInt(products.length/col)+((products.length%col)!=0);
+                var pids = []
+    			for(let i=0;i!=row;i++){
+                    margin_bottom = 10
+                    if (i==row-1){
+                        margin_bottom = 100
+                    }
+                    var content = "<div class='d-flex flex-row' style='width:1000px;'>"                     
+                    for(let j=0;j!=col;j++){
+                        if(col*i+j>=products.length){
+                            break
+                        } 
+                        (function(i,j){
+                            var pid = products[i*col+j].pid
+    	    				var pname = products[i*col+j].pname
+    	    				var original_price = products[i*col+j].original_price
+    	    				var discnt_rate = products[i*col+j].discnt_rate
+                            var qoh = products[i*col+j].qoh 
+                            var qoh_threshold = products[i*col+j].qoh_threshold
+
+                            pids.push(pid)
+    	    				content += getContent(pid,pname,original_price, discnt_rate,qoh, qoh_threshold)
+        				})(i,j)
+                    }
+                    $('#mycar').append(content+"</div>") 
+                    $('[data-toggle="popover"]').popover(); 
+                }  
+                bindEvent(pids)
+    		})	
+    	})
+    </script>
+ 	</head>
+ 	<body>
+ 		<div class="container mt-3 " style="height: 1000px;">
+            <div id='user' class="row" style="text-align: center;font-family: KaiTi;margin:4px;">
+                <span style="color:white;text-shadow: 0 0 10px;">欢迎您，<strong id='sname' style="color:orange;text-shadow: 0 0 10px;"></strong style="color:white;text-shadow: 0 0 10px;"><br>所有商品如下：</span>
+                
+            </div>
+            
+ 			<div  id="mycar" class="d-flex flex-column"></div>
+ 		</div>
+        <div id='addNew' style="position: fixed;width:80px;height: 80px;border-radius: 200px;bottom:40px;right: 40px;background: orange;color:white;font-size: 40px;margin:0 auto;text-align: center;vertical-align: center;padding-top:12px;">+</div>
+ 	</body>
+</html>
